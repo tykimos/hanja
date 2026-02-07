@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
 <title>한자 올림픽</title>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
@@ -11,6 +11,13 @@
 --bg:#F5F5F0;--gold:#FFD700;--silver:#C0C0C0;--bronze:#CD7F32;
 --card-bg:#fff;--shadow:0 2px 12px rgba(0,0,0,.1);
 --radius:16px;--transition:0.3s ease;
+/* Responsive font sizes - mobile first */
+--font-size-xs:12px;--font-size-sm:14px;--font-size-base:16px;
+--font-size-lg:20px;--font-size-xl:28px;--font-size-hanja:48px;
+/* Spacing - mobile first */
+--spacing-xs:8px;--spacing-sm:12px;--spacing-md:16px;--spacing-lg:24px;
+/* Touch targets */
+--touch-target:44px;
 }
 html{font-size:16px;-webkit-tap-highlight-color:transparent;}
 body{
@@ -19,12 +26,12 @@ background:var(--bg);color:#333;min-height:100vh;min-height:100dvh;
 overflow-x:hidden;
 }
 .app-container{
-max-width:480px;margin:0 auto;min-height:100vh;min-height:100dvh;
+width:100%;max-width:1600px;margin:0 auto;min-height:100vh;min-height:100dvh;
 position:relative;overflow:hidden;
 }
 .screen{
 display:none;flex-direction:column;align-items:center;
-min-height:100vh;min-height:100dvh;padding:20px 16px;
+min-height:100vh;min-height:100dvh;padding:var(--spacing-md) var(--spacing-sm);
 width:100%;
 }
 .screen.active{display:flex;}
@@ -32,7 +39,7 @@ width:100%;
 /* Buttons */
 button{
 font-family:inherit;font-size:1rem;border:none;cursor:pointer;
-touch-action:manipulation;min-height:44px;min-width:44px;
+touch-action:manipulation;min-height:var(--touch-target);min-width:var(--touch-target);
 border-radius:12px;padding:12px 24px;font-weight:600;
 transition:transform .15s,box-shadow .15s,background .2s;
 -webkit-user-select:none;user-select:none;
@@ -47,12 +54,12 @@ button:active{transform:scale(.96);}
 .btn-outline{background:transparent;border:2px solid var(--blue);color:var(--blue);}
 
 /* Typography */
-.title-lg{font-size:1.8rem;font-weight:800;text-align:center;}
-.title-md{font-size:1.4rem;font-weight:700;text-align:center;}
-.title-sm{font-size:1.1rem;font-weight:600;}
-.subtitle{font-size:.9rem;color:#777;text-align:center;}
+.title-lg{font-size:var(--font-size-xl);font-weight:800;text-align:center;}
+.title-md{font-size:var(--font-size-lg);font-weight:700;text-align:center;}
+.title-sm{font-size:var(--font-size-base);font-weight:600;}
+.subtitle{font-size:var(--font-size-sm);color:#777;text-align:center;}
 .hanja-display{
-font-size:clamp(48px,10vw,96px);font-weight:400;line-height:1.2;
+font-size:var(--font-size-hanja);font-weight:400;line-height:1.2;
 font-family:'Noto Serif KR',serif;
 }
 
@@ -156,7 +163,7 @@ background:rgba(255,255,255,.2);border-radius:20px;padding:4px 12px;
 font-size:.85rem;margin-top:8px;
 }
 .game-grid{
-display:grid;grid-template-columns:1fr 1fr;gap:12px;width:100%;
+display:grid;grid-template-columns:1fr;gap:12px;width:100%;padding:0 var(--spacing-md);
 }
 .game-card{
 background:var(--card-bg);border-radius:var(--radius);
@@ -642,6 +649,49 @@ text-shadow:0 1px 3px rgba(0,0,0,.4);
 #screen-hub .hub-nav button:active{background:rgba(255,255,255,0.15);}
 #screen-hub .daily-card{background:linear-gradient(135deg,#4a0080,#7b2ff7)!important;box-shadow:0 4px 20px rgba(123,47,247,0.4);}
 #screen-hub .daily-card-title,#screen-hub .daily-card-info,#screen-hub .daily-streak{color:#fff;}
+
+/* ===== RESPONSIVE MEDIA QUERIES ===== */
+
+/* Tablet Portrait: 768px+ */
+@media (min-width:768px){
+:root{
+--font-size-xs:13px;--font-size-sm:15px;--font-size-base:17px;
+--font-size-lg:22px;--font-size-xl:32px;--font-size-hanja:56px;
+--spacing-sm:16px;--spacing-md:20px;--spacing-lg:32px;
+--touch-target:40px;
+}
+.game-grid{grid-template-columns:1fr 1fr;gap:16px;}
+.app-container{max-width:1024px;}
+}
+
+/* Tablet Landscape / Desktop S: 1024px+ */
+@media (min-width:1024px){
+:root{
+--font-size-xs:14px;--font-size-sm:16px;--font-size-base:18px;
+--font-size-lg:24px;--font-size-xl:36px;--font-size-hanja:64px;
+--spacing-md:24px;--spacing-lg:40px;
+--touch-target:36px;
+}
+#game3d{max-width:min(90vw,1600px);max-height:90vh;top:50%!important;left:50%!important;
+transform:translate(-50%,-50%)!important;width:min(90vw,1600px)!important;height:auto!important;}
+#game3d canvas{max-width:100%!important;max-height:90vh!important;width:auto!important;height:auto!important;}
+}
+
+/* Desktop M: 1280px+ */
+@media (min-width:1280px){
+:root{
+--spacing-lg:48px;
+}
+.game-grid{grid-template-columns:1fr 1fr 1fr;gap:20px;max-width:1200px;margin:0 auto;}
+.app-container{max-width:1600px;}
+}
+
+/* Desktop L: 1920px+ */
+@media (min-width:1920px){
+:root{
+--font-size-hanja:72px;
+}
+}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </head>
@@ -1665,18 +1715,34 @@ const GE3D={
     }
     this._rsz();
     window.addEventListener('resize',()=>this._rsz());
+    window.addEventListener('orientationchange',()=>{
+      setTimeout(()=>this._rsz(),100);
+    });
   },
   _rsz(){
     const w=window.innerWidth,h=window.innerHeight;
     this.renderer.setSize(w,h);
+    // Adjust pixel ratio based on screen size
+    const isMobile=w<768;
+    this.renderer.setPixelRatio(isMobile?Math.min(window.devicePixelRatio,2):window.devicePixelRatio);
     if(this.game&&this.game.camera){
       this.game.camera.aspect=w/h;
+      // Adjust FOV based on breakpoint
+      if(this.game.camera.fov){
+        if(w<768)this.game.camera.fov=60;
+        else if(w<1024)this.game.camera.fov=55;
+        else this.game.camera.fov=50;
+      }
       this.game.camera.updateProjectionMatrix();
     }
   },
   start(g){
     this.game=g;this.running=true;this.particles3d=[];
     this.container.style.display='block';this.lastT=performance.now();
+    if(!this._keyHandler){
+      this._keyHandler=(e)=>this._handleKey(e);
+      document.addEventListener('keydown',this._keyHandler);
+    }
     this._loop();
   },
   stop(){
@@ -1685,6 +1751,29 @@ const GE3D={
     this.game=null;this.ui.innerHTML='';
     this.particles3d.forEach(p=>{if(p.parent)p.parent.remove(p);});
     this.particles3d=[];
+    if(this._keyHandler){
+      document.removeEventListener('keydown',this._keyHandler);
+      this._keyHandler=null;
+    }
+  },
+  _handleKey(e){
+    if(!this.running||!this.game)return;
+    const key=e.key;
+    // Number keys 1-4 for answer selection
+    if(key>='1'&&key<='4'){
+      e.preventDefault();
+      const idx=parseInt(key)-1;
+      // Try calling game-specific answer functions
+      if(typeof window._swimAnswer==='function')window._swimAnswer(idx);
+      if(typeof window._wlAnswer==='function')window._wlAnswer(idx);
+      if(typeof window._marathonAnswer==='function')window._marathonAnswer(idx);
+    }
+    // Space key for special actions
+    if(key===' '||key==='Spacebar'){
+      e.preventDefault();
+      // For weightlifting gauge stop
+      if(typeof window._wlGaugeStop==='function')window._wlGaugeStop();
+    }
   },
   _loop(){
     if(!this.running)return;
@@ -1723,9 +1812,12 @@ const GE3D={
   },
   shake(intensity,duration){this.shakeIntensity=intensity;this.shakeDuration=duration;this.shakeTime=0;},
   burst3d(scene,x,y,z,color,count,speed,life){
+    // Reduce particles on mobile for performance
+    const isMobile=window.innerWidth<768;
+    const adjustedCount=isMobile?Math.floor(count*0.5):count;
     const geo=new THREE.BoxGeometry(0.15,0.15,0.15);
     const mat=new THREE.MeshLambertMaterial({color});
-    for(let i=0;i<count;i++){
+    for(let i=0;i<adjustedCount;i++){
       const m=new THREE.Mesh(geo,mat.clone());
       m.position.set(x,y,z);
       const a=Math.random()*Math.PI*2,e=Math.random()*Math.PI-Math.PI/2;
@@ -1806,13 +1898,17 @@ function g3dProgress(pct,color){
     <div style="height:100%;width:${pct}%;background:${color||'#76FF03'};transition:width .3s;border-radius:0 2px 2px 0;"></div></div>`;
 }
 function g3dAnswerGrid(opts,onClickFn,isHanja){
-  return `<div style="position:absolute;bottom:0;left:0;right:0;padding:12px;display:grid;grid-template-columns:1fr 1fr;gap:10px;pointer-events:auto;">
+  const w=window.innerWidth;
+  const isDesktop=w>=1024;
+  const gridCols=isDesktop?'1fr 1fr 1fr 1fr':'1fr 1fr';
+  const showNumbers=isDesktop;
+  return `<div style="position:absolute;bottom:0;left:0;right:0;padding:12px;display:grid;grid-template-columns:${gridCols};gap:10px;pointer-events:auto;">
     ${opts.map((o,i)=>`<button class="g3d-btn g3d-ans" data-idx="${i}" onclick="${onClickFn}(${i})"
       style="padding:${isHanja?'14px 8px':'18px 10px'};border-radius:16px;font-size:${isHanja?'clamp(28px,7vw,44px)':'1.1rem'};font-weight:800;
       border:2px solid rgba(255,255,255,.2);color:#fff;text-align:center;
       background:rgba(255,255,255,.12);backdrop-filter:blur(8px);min-height:56px;
       cursor:pointer;transition:all .15s;text-shadow:0 1px 3px rgba(0,0,0,.4);
-      font-family:inherit;">${o.label}</button>`).join('')}
+      font-family:inherit;position:relative;">${showNumbers?`<span style="position:absolute;top:4px;left:8px;font-size:0.7rem;opacity:0.6;">${i+1}</span>`:''}${o.label}</button>`).join('')}
   </div>`;
 }
 function g3dCountdown(n){
@@ -1994,7 +2090,7 @@ function createSwimmingGame3D(){
   let swimmers3d,waterMesh,waterPhase;
   function reset(){
     score=0;wrong=[];enc=[];timeLeft=60;phase='countdown';countdown=3;cdT=0;
-    pPos=5;cpuPos=[5,5,5];streak=0;cpuBase=1.0;waterPhase=0;answered=false;
+    pPos=25;cpuPos=[5,5,5];streak=0;cpuBase=1.0;waterPhase=0;answered=false;
     // build scene
     scene=new THREE.Scene();
     scene.background=new THREE.Color(0x003459);
@@ -2088,10 +2184,10 @@ function createSwimmingGame3D(){
       if(phase==='countdown'){cdT+=dt;if(cdT>=1){countdown--;cdT=0;SoundSystem.playSound('countdown_tick');if(countdown<=0){phase='race';SoundSystem.playSound('whistle');}updateUI();}}
       if(phase==='race'){
         timeLeft-=dt;if(timeLeft<=0){timeLeft=0;phase='done';return;}
-        // cpu
-        cpuBase=0.6+(pPos/90)*1.2;
-        cpuPos=cpuPos.map((p,i)=>Math.min(95,p+(cpuBase+Math.random()*0.6-0.15)*(0.85+i*0.08)*dt*60/50));
-        pPos=Math.min(95,pPos+dt*0.5);
+        // cpu (slowed down to help player reach finals)
+        cpuBase=0.4+(pPos/90)*0.8;
+        cpuPos=cpuPos.map((p,i)=>Math.min(95,p+(cpuBase+Math.random()*0.4-0.1)*(0.7+i*0.05)*dt*60/50));
+        pPos=Math.min(95,pPos+dt*0.3);
         // update timer display
         if(Math.floor(timeLeft)!==Math.floor(timeLeft+dt))updateUI();
         // panic
@@ -2361,7 +2457,7 @@ function createGymnasticsGame3D(){
       const labelGeo=new THREE.PlaneGeometry(cardW*0.85,cardH*0.85);
       const labelMat=new THREE.MeshBasicMaterial({map:labelTex,transparent:false,side:THREE.DoubleSide});
       const labelMesh=new THREE.Mesh(labelGeo,labelMat);
-      labelMesh.rotation.x=-Math.PI/2;labelMesh.position.y=-0.09;
+      labelMesh.rotation.x=Math.PI/2;labelMesh.position.y=-0.09;
       grp.add(labelMesh);
       // Back "?" label
       const backTex=makeTextCanvas('?',100,'rgba(255,255,255,0.6)','rgba(108,99,255,0)',256,256);
@@ -2440,7 +2536,7 @@ function createGymnasticsGame3D(){
     init(){reset();this.scene=scene;this.camera=camera;
       if(!clickBound){GE3D.container.addEventListener('pointerdown',onContainerClick);clickBound=true;}},
     update(dt){
-      if(phase==='countdown'){cdT+=dt;if(cdT>=1){countdown--;cdT=0;SoundSystem.playSound('countdown_tick');if(countdown<=0){phase='peek';SoundSystem.playSound('countdown_go');}updateUI();}}
+      if(phase==='countdown'){cdT+=dt;if(cdT>=1){countdown--;cdT=0;SoundSystem.playSound('countdown_tick');if(countdown<=0){phase='peek';cards3d.forEach(c=>{flipCard(c,true);});SoundSystem.playSound('countdown_go');}updateUI();}}
       if(phase==='peek'){peekT-=dt;if(peekT<=0){phase='play';locked=false;cards3d.forEach(c=>{flipCard(c,false);});updateUI();}}
       if(phase==='play'){timeLeft-=dt;if(timeLeft<=0){timeLeft=0;phase='done';}if(Math.floor(timeLeft)!==Math.floor(timeLeft+dt))updateUI();}
       cards3d.forEach(c=>{
@@ -2453,7 +2549,7 @@ function createGymnasticsGame3D(){
           c.userData.front.visible=isFront;c.userData.back.visible=!isFront;
           c.userData.labelMesh.visible=isFront;c.userData.backLabelMesh.visible=!isFront;
         }
-        if(c.userData.isMatched){c.position.y=Math.min(c.position.y+dt*0.5,2);}
+        if(c.userData.isMatched){c.position.y=Math.max(c.position.y-dt*0.5,-2);}
         if(!c.userData.isMatched){c.position.y=Math.sin(performance.now()/1000+c.userData.idx)*0.05;}
       });
     },
@@ -2581,12 +2677,22 @@ function createMarathonGame3D(){
     const isCorrect=o.fullHunEum===q.fullHunEum;
     const correctIdx=curOpts.findIndex(x=>x.fullHunEum===q.fullHunEum);
     markAnswer(idx,correctIdx);
-    // runner dashes toward selected wall
+    // Move runner to selected lane
+    const positions=[-2.2,-0.75,0.75,2.2];
+    const targetX=positions[idx];
     const targetWall=walls3d[idx];
     if(isCorrect){
       score++;streak++;speedLv=Math.min(3,Math.floor(streak/3));
       SoundSystem.playSound('correct');
-      // break wall
+      // Runner moves to correct lane and breaks through wall
+      const moveInterval=setInterval(()=>{
+        const dx=targetX-runner3d.position.x;
+        runner3d.position.x+=dx*0.15;
+        if(Math.abs(dx)<0.1){
+          clearInterval(moveInterval);
+          runner3d.position.x=targetX;
+        }
+      },16);
       setTimeout(()=>{
         if(targetWall){
           targetWall.broken=true;
@@ -2595,19 +2701,37 @@ function createMarathonGame3D(){
         }
         GE3D.shake(1,0.2);SoundSystem.playSound('impact_light');
         if(streak>0&&streak%5===0&&hp<5){hp++;SoundSystem.playSound('combo_hit');}
-      },200);
+      },300);
     }else{
       wrong.push(q);streak=0;speedLv=0;hp--;
       SoundSystem.playSound('wrong');SoundSystem.playSound('impact_heavy');
+      // Runner collides and falls
+      const moveInterval=setInterval(()=>{
+        const dx=targetX-runner3d.position.x;
+        runner3d.position.x+=dx*0.15;
+        if(Math.abs(dx)<0.1){
+          clearInterval(moveInterval);
+          runner3d.position.x=targetX;
+        }
+      },16);
       setTimeout(()=>{
+        // Collision effect - runner falls
+        runner3d.rotation.z=Math.PI/2;
+        runner3d.position.y=0.2;
         GE3D.shake(3,0.5);
         GE3D.burst3d(scene,runner3d.position.x,1,runner3d.position.z-1,0xEE334E,20,3,0.6);
-        // show correct wall green
+        // Show correct wall green
         walls3d.forEach((w,i)=>{if(i===correctIdx)w.group.children[0].material=new THREE.MeshLambertMaterial({color:0x00ff00,emissive:0x00ff00,emissiveIntensity:0.3});});
-      },200);
-      if(hp<=0){setTimeout(()=>{phase='done';updateUI();},800);return;}
+      },400);
+      // Get back up
+      setTimeout(()=>{
+        runner3d.rotation.z=0;
+        runner3d.position.y=0.5;
+        runner3d.position.x=0;
+      },1200);
+      if(hp<=0){setTimeout(()=>{phase='done';updateUI();},1500);return;}
     }
-    setTimeout(()=>{cur++;setupQ();},800);
+    setTimeout(()=>{cur++;setupQ();},1300);
   };
   return{
     scene:null,camera:null,
@@ -2629,7 +2753,26 @@ function createMarathonGame3D(){
       // walls approach runner
       if(!wallHit){
         wallZ+=dt*3*spd;
-        walls3d.forEach(w=>{w.group.position.z=wallZ+20+w.group.position.z;w.group.position.z=wallZ;});
+        walls3d.forEach(w=>{w.group.position.z=wallZ;});
+        // Collision detection - if walls reach runner without answer
+        if(wallZ>=0){
+          // Force collision with closest wall to runner's current position
+          let closestIdx=0;
+          let closestDist=999;
+          walls3d.forEach((w,i)=>{
+            const dist=Math.abs(w.group.position.x-runner3d.position.x);
+            if(dist<closestDist){closestDist=dist;closestIdx=i;}
+          });
+          // Auto-select the closest wall (force wrong answer if not already answered)
+          if(typeof window._marathonAnswer==='function'){
+            const correctIdx=curOpts.findIndex(x=>x.fullHunEum===qs[cur].fullHunEum);
+            // Force collision with non-broken wall
+            const collisionIdx=walls3d.findIndex(w=>!w.broken);
+            if(collisionIdx!==-1&&collisionIdx!==correctIdx){
+              window._marathonAnswer(collisionIdx);
+            }
+          }
+        }
       }
       // trees scroll
       trees3d.forEach(t=>{t.position.z+=dt*5*spd;if(t.position.z>10)t.position.z-=48;});
