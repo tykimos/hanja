@@ -35,9 +35,12 @@ const Store = {
   async signup(email, password, username, icon) {
     const { data, error } = await supabase.auth.signUp({ email, password });
     if (error) return { error: error.message };
-    // Create profile
+    // Create profile with default grade
     const { error: pErr } = await supabase.from('profiles').insert({
-      id: data.user.id, username, icon: icon || '\ud83c\uddf0\ud83c\uddf7'
+      id: data.user.id,
+      username,
+      icon: icon || '🇰🇷',
+      grade: '8급'
     });
     if (pErr) return { error: pErr.message };
     this._user = data.user;
@@ -50,6 +53,15 @@ const Store = {
     if (error) return { error: error.message };
     this._user = data.user;
     await this._loadProfile();
+
+    // Ensure profile has grade set (for existing users)
+    if (this._profile && !this._profile.grade) {
+      await supabase.from('profiles')
+        .update({ grade: '8급' })
+        .eq('id', this._user.id);
+      await this._loadProfile();
+    }
+
     return { data };
   },
 
@@ -60,15 +72,29 @@ const Store = {
   },
 
   async saveScore(gameId, score, total, medal, wrongAnswers) {
-    if (!this._user) return;
+    if (!this._user) {
+      console.error('saveScore: No user logged in');
+      return { error: 'No user logged in' };
+    }
+
+    const grade = this.getGrade();
+    console.log('Saving score:', { gameId, score, total, grade, userId: this._user.id });
+
     const { error } = await supabase.from('scores').insert({
       user_id: this._user.id,
       game_id: gameId,
       score, total,
       medal: medal || null,
       wrong_answers: wrongAnswers || [],
-      grade: this.getGrade(),
+      grade: grade,
     });
+
+    if (error) {
+      console.error('saveScore error:', error);
+    } else {
+      console.log('Score saved successfully');
+    }
+
     return { error };
   },
 
@@ -95,11 +121,15 @@ const Store = {
       // Composite scoring: rank-based points across all 8 games
       const games = ['archery', 'swimming', 'weightlifting', 'gymnastics', 'marathon', 'antonym', 'idiom', 'homonym'];
 
-      // Fetch all scores for current grade
-      const { data } = await supabase.from('scores')
+      // Fetch all scores (temporarily without grade filtering for debugging)
+      const { data, error: queryError } = await supabase.from('scores')
         .select('user_id, game_id, score, profiles!inner(username, icon, grade)')
-        .eq('profiles.grade', currentGrade)
         .order('score', { ascending: false });
+
+      if (queryError) {
+        console.error('Leaderboard query error:', queryError);
+        return [];
+      }
 
       if (!data || data.length === 0) return [];
 
@@ -147,12 +177,16 @@ const Store = {
         .map(u => ({ ...u, compositeScore: u.totalPoints }))
         .sort((a, b) => b.totalPoints - a.totalPoints);
     } else {
-      // Per-game: best score per user (grade-filtered)
-      const { data } = await supabase.from('scores')
+      // Per-game: best score per user (temporarily without grade filtering)
+      const { data, error: gameError } = await supabase.from('scores')
         .select('user_id, score, medal, profiles!inner(username, icon, grade)')
         .eq('game_id', gameId)
-        .eq('profiles.grade', currentGrade)
         .order('score', { ascending: gameId === 'gymnastics' });
+
+      if (gameError) {
+        console.error('Per-game leaderboard error:', gameError);
+        return [];
+      }
 
       if (!data || data.length === 0) return [];
 
@@ -237,27 +271,20 @@ const Store = {
   async setGrade(grade) {
     if (!this._user) throw new Error('No user logged in');
 
-    // Check if profile exists
-    const { data: existing } = await supabase.from('profiles')
-      .select('id')
-      .eq('id', this._user.id)
-      .single();
-
-    if (!existing) {
-      // Create profile if it doesn't exist
-      const { error: insertError } = await supabase.from('profiles').insert({
+    // Use upsert for simpler, more reliable logic
+    const { error } = await supabase.from('profiles')
+      .upsert({
         id: this._user.id,
-        username: this._user.email?.split('@')[0] || 'User',
-        icon: '🇰🇷',
+        username: this._profile?.username || this._user.email?.split('@')[0] || 'User',
+        icon: this._profile?.icon || '🇰🇷',
         grade: grade
+      }, {
+        onConflict: 'id'
       });
-      if (insertError) throw insertError;
-    } else {
-      // Update existing profile
-      const { error: updateError } = await supabase.from('profiles')
-        .update({ grade })
-        .eq('id', this._user.id);
-      if (updateError) throw updateError;
+
+    if (error) {
+      console.error('setGrade error:', error);
+      throw error;
     }
 
     // Reload profile
