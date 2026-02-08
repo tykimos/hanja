@@ -20,8 +20,12 @@ const Store = {
 
   async _loadProfile() {
     if (!this._user) return;
-    const { data } = await supabase.from('profiles').select('*').eq('id', this._user.id).single();
-    this._profile = data;
+    const { data, error } = await supabase.from('profiles').select('*').eq('id', this._user.id).maybeSingle();
+    if (!error && data) {
+      this._profile = data;
+    } else {
+      this._profile = null;
+    }
   },
 
   getCurrentUser() { return this._profile?.username || null; },
@@ -233,12 +237,28 @@ const Store = {
   async setGrade(grade) {
     if (!this._user) throw new Error('No user logged in');
 
-    // Update profiles table
-    const { error } = await supabase.from('profiles')
-      .update({ grade })
-      .eq('id', this._user.id);
+    // Check if profile exists
+    const { data: existing } = await supabase.from('profiles')
+      .select('id')
+      .eq('id', this._user.id)
+      .single();
 
-    if (error) throw error;
+    if (!existing) {
+      // Create profile if it doesn't exist
+      const { error: insertError } = await supabase.from('profiles').insert({
+        id: this._user.id,
+        username: this._user.email?.split('@')[0] || 'User',
+        icon: '🇰🇷',
+        grade: grade
+      });
+      if (insertError) throw insertError;
+    } else {
+      // Update existing profile
+      const { error: updateError } = await supabase.from('profiles')
+        .update({ grade })
+        .eq('id', this._user.id);
+      if (updateError) throw updateError;
+    }
 
     // Reload profile
     await this._loadProfile();
