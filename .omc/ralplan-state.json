@@ -1,0 +1,10 @@
+{
+  "active": true,
+  "mode": "ralplan",
+  "iteration": 1,
+  "max_iterations": 5,
+  "current_phase": "planner_planning",
+  "started_at": "2026-02-08T00:00:00.000Z",
+  "task_description": "한자 올림픽 등급 시스템 구현: 13개 등급 체계, 사용자별 등급 설정, 등급별 게임 출제/리더보드, 종합 순위 계산, 개인 통계 분석",
+  "plan_path": ".omc/plans/hanja-grade-system.md"
+}
