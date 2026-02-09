@@ -72,7 +72,18 @@ export class RaycastUI {
     this.mouse.x = ((clientX - rect.left) / rect.width) * 2 - 1;
     this.mouse.y = -((clientY - rect.top) / rect.height) * 2 + 1;
     this.raycaster.setFromCamera(this.mouse, this.camera);
-    return this.raycaster.intersectObjects(this.clickableObjects, true);
+
+    // Get all descendant meshes from clickable groups
+    const allDescendants = [];
+    this.clickableObjects.forEach(obj => {
+      obj.traverse(child => {
+        if (child.isMesh || child.isSprite) {
+          allDescendants.push(child);
+        }
+      });
+    });
+
+    return this.raycaster.intersectObjects(allDescendants, false);
   }
 
   _findClickableParent(obj) {
@@ -123,11 +134,17 @@ export class RaycastUI {
   _onClick(event) {
     if (this._disposed) return;
     const intersects = this._getIntersects(event.clientX, event.clientY);
+
     if (intersects.length > 0) {
       const target = this._findClickableParent(intersects[0].object);
       if (target && target.userData.onClick) {
+        console.log('3D Click detected:', target.name || 'unnamed object');
         target.userData.onClick();
+      } else {
+        console.log('Click on non-clickable 3D object:', intersects[0].object);
       }
+    } else {
+      console.log('No 3D objects intersected at click position');
     }
   }
 

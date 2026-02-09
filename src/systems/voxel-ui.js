@@ -79,6 +79,7 @@ export function create3DButton(text, opts = {}) {
   } = opts;
 
   const group = new THREE.Group();
+  group.name = `Button_${text}`;
 
   // Button body
   const body = new THREE.Mesh(
@@ -492,6 +493,7 @@ export function create3DGameCard(opts = {}) {
   } = opts;
 
   const group = new THREE.Group();
+  group.name = `GameCard_${name}`;
 
   // Card base (standing slab)
   const base = new THREE.Mesh(
