@@ -12,355 +12,263 @@ export function initSplash(onReady) {
     const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.setSize(w, h);
-    renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x0a0a1e);
-    scene.fog = new THREE.FogExp2(0x0a0a1e, 0.012);
+    scene.background = new THREE.Color(0x080820);
+    scene.fog = new THREE.FogExp2(0x080820, 0.01);
 
     const cam = new THREE.PerspectiveCamera(55, w / h, 0.1, 200);
     cam.position.set(0, 8, 18);
     cam.lookAt(0, 2, 0);
 
     // === Lighting ===
-    scene.add(new THREE.AmbientLight(0x334466, 0.4));
-    const dL = new THREE.DirectionalLight(0xffeedd, 0.6);
-    dL.position.set(5, 12, 5);
+    scene.add(new THREE.AmbientLight(0x334466, 0.35));
+    const dL = new THREE.DirectionalLight(0xeeeeff, 0.5);
+    dL.position.set(5, 15, 5);
     dL.castShadow = true;
     scene.add(dL);
 
-    // Warm lantern lights
-    const pL1 = new THREE.PointLight(0xFF8844, 1.2, 25);
-    pL1.position.set(-4, 5, 4);
+    // Accent lights (Olympic colors)
+    const pL1 = new THREE.PointLight(0x0081C8, 0.8, 25);
+    pL1.position.set(-6, 5, 4);
     scene.add(pL1);
-    const pL2 = new THREE.PointLight(0xFF6622, 0.9, 20);
-    pL2.position.set(4, 4, 2);
+    const pL2 = new THREE.PointLight(0xEE334E, 0.6, 20);
+    pL2.position.set(6, 4, 2);
     scene.add(pL2);
-    // Moonlight
-    const moonLight = new THREE.PointLight(0x8899CC, 0.6, 50);
-    moonLight.position.set(10, 20, -10);
-    scene.add(moonLight);
+    const pL3 = new THREE.PointLight(0xFFD700, 0.5, 30);
+    pL3.position.set(0, 10, -5);
+    scene.add(pL3);
 
     // === Stars ===
+    const isMobile = w < 768;
     const sGeo = new THREE.BufferGeometry();
     const sPos = [];
-    for (let i = 0; i < 500; i++) sPos.push((Math.random() - .5) * 100, Math.random() * 50 + 8, (Math.random() - .5) * 100 - 15);
+    const starCount = isMobile ? 300 : 600;
+    for (let i = 0; i < starCount; i++) sPos.push(
+      (Math.random() - .5) * 120,
+      Math.random() * 60 + 5,
+      (Math.random() - .5) * 120 - 20
+    );
     sGeo.setAttribute('position', new THREE.Float32BufferAttribute(sPos, 3));
-    const stars = new THREE.Points(sGeo, new THREE.PointsMaterial({ color: 0xffffff, size: 0.12, transparent: true, opacity: 0.8 }));
+    const stars = new THREE.Points(sGeo, new THREE.PointsMaterial({
+      color: 0xffffff, size: 0.1, transparent: true, opacity: 0.7,
+    }));
     scene.add(stars);
 
-    // === Ground / Zen Garden ===
-    const ground = voxBox(40, 0.4, 30, 0x0d1a0d);
-    ground.position.set(0, -0.2, 0);
-    ground.receiveShadow = true;
+    // === Ground (stadium floor) ===
+    const ground = voxBox(50, 0.3, 35, 0x0d0d1a);
+    ground.position.set(0, -0.5, 0);
     scene.add(ground);
 
-    // Sand garden area
-    const sand = voxBox(12, 0.05, 10, 0x2a2520);
-    sand.position.set(3, 0.02, 2);
-    scene.add(sand);
-
-    // Zen garden raked lines (thin voxel strips)
-    for (let i = -4; i <= 4; i++) {
-      const line = voxBox(10, 0.02, 0.06, 0x3a3530);
-      line.position.set(3, 0.06, 2 + i * 0.8);
+    // Floor accent lines
+    for (let i = -5; i <= 5; i++) {
+      const line = voxBox(50, 0.02, 0.05, 0x222244);
+      line.position.set(0, -0.33, i * 2);
       scene.add(line);
     }
 
-    // Zen stones
-    const stoneColors = [0x555555, 0x444444, 0x666666];
-    [[4, 0.2, 1], [5.5, 0.15, 3], [2.5, 0.18, 4]].forEach(([sx, sy, sz], i) => {
-      const stone = voxBox(0.5 + Math.random() * 0.3, sy * 2, 0.4 + Math.random() * 0.2, stoneColors[i]);
-      stone.position.set(sx, sy, sz);
-      stone.rotation.y = Math.random() * 0.5;
-      scene.add(stone);
-    });
-
-    // === Water pond ===
-    const waterGeo = new THREE.PlaneGeometry(8, 5);
-    const waterMat = new THREE.MeshPhongMaterial({
-      color: 0x112244,
-      transparent: true,
-      opacity: 0.7,
-      shininess: 100,
-      emissive: 0x051525,
-    });
-    const water = new THREE.Mesh(waterGeo, waterMat);
-    water.rotation.x = -Math.PI / 2;
-    water.position.set(-5, 0.05, 3);
-    scene.add(water);
-
-    // Water border stones
-    for (let a = 0; a < Math.PI * 2; a += 0.4) {
-      const bs = voxBox(0.3, 0.15, 0.3, 0x444433);
-      bs.position.set(-5 + Math.cos(a) * 4.2, 0.08, 3 + Math.sin(a) * 2.7);
-      bs.rotation.y = a;
-      scene.add(bs);
-    }
-
-    // === Bridge over water ===
-    const bridge = new THREE.Group();
-    // Bridge deck
-    const deck = voxBox(3, 0.12, 1.2, 0x8B4513);
-    deck.position.y = 0.6;
-    bridge.add(deck);
-    // Bridge railings
-    for (let bx = -1.2; bx <= 1.2; bx += 0.6) {
-      const post = voxBox(0.1, 0.5, 0.1, 0xA0522D);
-      post.position.set(bx, 0.9, 0.55);
-      bridge.add(post);
-      const post2 = voxBox(0.1, 0.5, 0.1, 0xA0522D);
-      post2.position.set(bx, 0.9, -0.55);
-      bridge.add(post2);
-    }
-    // Bridge top rail
-    const rail1 = voxBox(3, 0.06, 0.06, 0xA0522D);
-    rail1.position.set(0, 1.15, 0.55);
-    bridge.add(rail1);
-    const rail2 = voxBox(3, 0.06, 0.06, 0xA0522D);
-    rail2.position.set(0, 1.15, -0.55);
-    bridge.add(rail2);
-    // Bridge supports
-    const sup1 = voxBox(0.15, 0.6, 1.0, 0x6B3410);
-    sup1.position.set(-1.2, 0.3, 0);
-    bridge.add(sup1);
-    const sup2 = voxBox(0.15, 0.6, 1.0, 0x6B3410);
-    sup2.position.set(1.2, 0.3, 0);
-    bridge.add(sup2);
-    bridge.position.set(-5, 0, 1);
-    bridge.rotation.y = 0.3;
-    scene.add(bridge);
-
-    // === Stepping stones ===
-    [[-2, 0.08, 5], [-1.2, 0.08, 4.5], [-0.3, 0.08, 5.2], [0.5, 0.08, 4.8]].forEach(([sx, sy, sz]) => {
-      const step = voxBox(0.5, 0.08, 0.5, 0x555544);
-      step.position.set(sx, sy, sz);
-      step.rotation.y = Math.random() * Math.PI;
-      scene.add(step);
-    });
-
-    // === Voxel Pagoda ===
-    const pagoda = new THREE.Group();
-    const floors = [
-      [4.2, 1.6, 4.2, 0x7B3F00],
-      [3.8, 0.25, 3.8, 0xA0522D],
-      [3.2, 1.3, 3.2, 0x7B3F00],
-      [2.8, 0.25, 2.8, 0xA0522D],
-      [2.2, 1.1, 2.2, 0x7B3F00],
-      [1.8, 0.25, 1.8, 0xA0522D],
-      [1.2, 0.9, 1.2, 0x7B3F00],
+    // === Stadium walls ===
+    const wallData = [
+      [-10, 0, -14, 6, 10, 3, 0x0a0a2e],
+      [0, 0, -16, 10, 12, 4, 0x080828],
+      [10, 0, -13, 5, 8, 3, 0x0c0c30],
+      [-15, 0, -10, 4, 6, 3, 0x090928],
+      [15, 0, -11, 4, 5, 2.5, 0x0a0a2e],
     ];
-    let py = 0;
-    floors.forEach(([fw, fh, fd, fc]) => {
-      const f = voxBox(fw, fh, fd, fc);
-      f.position.y = py + fh / 2;
-      f.castShadow = true;
-      pagoda.add(f);
-      py += fh;
-    });
-    // Pagoda tip
-    const tip = new THREE.Mesh(
-      new THREE.ConeGeometry(0.35, 1.2, 4),
-      new THREE.MeshPhongMaterial({ color: 0xFFD700, emissive: 0x553300, shininess: 80 })
-    );
-    tip.position.y = py + 0.6;
-    tip.castShadow = true;
-    pagoda.add(tip);
-
-    // Pagoda glow orb
-    const glowGeo = new THREE.SphereGeometry(0.15, 8, 8);
-    const glowMat = new THREE.MeshBasicMaterial({ color: 0xFFDD44, transparent: true, opacity: 0.9 });
-    const glow = new THREE.Mesh(glowGeo, glowMat);
-    glow.position.y = py + 1.3;
-    pagoda.add(glow);
-
-    pagoda.position.set(0, 0, -2);
-    scene.add(pagoda);
-
-    // === Lanterns ===
-    const lanterns = [];
-    [[-4, 3.5, 4], [4, 3.5, 4], [-3, 6, -3], [3, 6, -3], [0, 8, 1]].forEach(([lx, ly, lz]) => {
-      const lg = new THREE.Group();
-      // Lantern body
-      const lb = voxBox(0.35, 0.45, 0.35, 0xEE334E);
-      lg.add(lb);
-      // Lantern top/bottom caps
-      const cap1 = voxBox(0.25, 0.06, 0.25, 0x8B4513);
-      cap1.position.y = 0.26;
-      lg.add(cap1);
-      const cap2 = voxBox(0.25, 0.06, 0.25, 0x8B4513);
-      cap2.position.y = -0.26;
-      lg.add(cap2);
-      // Point light
-      const ll = new THREE.PointLight(0xff6622, 0.8, 10);
-      ll.position.y = 0;
-      lg.add(ll);
-      lg.position.set(lx, ly, lz);
-      scene.add(lg);
-      lanterns.push({ g: lg, l: ll, baseY: ly });
+    wallData.forEach(([mx, my, mz, mw, mh, md, mc]) => {
+      const m = voxBox(mw, mh, md, mc);
+      m.position.set(mx, my + mh / 2, mz);
+      scene.add(m);
     });
 
-    // === Cherry blossom trees ===
-    const treePositions = [[-7, 0, -4], [7, 0, -3], [-6, 0, 7], [8, 0, 6], [-10, 0, 0], [10, 0, -1]];
-    treePositions.forEach(([tx, ty, tz]) => {
-      const tree = new THREE.Group();
-      // Trunk
-      const trunk = voxBox(0.4, 2.5, 0.4, 0x6B3410);
-      trunk.position.y = 1.25;
-      tree.add(trunk);
-      // Cherry blossom canopy (pink voxels)
-      const blossomColors = [0xFFB7C5, 0xFF91A4, 0xFFCCDD, 0xFFA0B4];
-      for (let bx = -1; bx <= 1; bx += 0.7) {
-        for (let bz = -1; bz <= 1; bz += 0.7) {
-          for (let by = 0; by <= 1; by += 0.7) {
-            if (Math.random() > 0.3) {
-              const blossom = voxBox(
-                0.5 + Math.random() * 0.3,
-                0.4 + Math.random() * 0.2,
-                0.5 + Math.random() * 0.3,
-                blossomColors[Math.floor(Math.random() * blossomColors.length)]
-              );
-              blossom.position.set(bx, 2.8 + by, bz);
-              tree.add(blossom);
-            }
-          }
-        }
+    // === Olympic Rings (voxel style) ===
+    const ringColors = [0x0081C8, 0xFCB131, 0x333333, 0x00A651, 0xEE334E];
+    const ringPositions = [
+      [-2.4, 0.5], [-1.2, 0], [0, 0.5], [1.2, 0], [2.4, 0.5],
+    ];
+    const ringsGroup = new THREE.Group();
+    ringPositions.forEach(([rx, ry], i) => {
+      const segments = 16;
+      for (let s = 0; s < segments; s++) {
+        const angle = (s / segments) * Math.PI * 2;
+        const block = voxBox(0.25, 0.2, 0.15, ringColors[i]);
+        block.position.set(
+          rx + Math.cos(angle) * 0.7,
+          ry + Math.sin(angle) * 0.7,
+          0
+        );
+        block.rotation.z = angle;
+        ringsGroup.add(block);
       }
-      tree.position.set(tx, ty, tz);
-      scene.add(tree);
+    });
+    ringsGroup.position.set(0, 10, -6);
+    ringsGroup.scale.setScalar(1.8);
+    scene.add(ringsGroup);
+
+    // === Olympic Torch / Cauldron ===
+    const torchGroup = new THREE.Group();
+    const pillar = voxBox(0.5, 3, 0.5, 0x666677);
+    pillar.position.y = 1.5;
+    torchGroup.add(pillar);
+    for (let h = 0; h < 3; h++) {
+      const ring = voxBox(0.65, 0.08, 0.65, 0x888899);
+      ring.position.y = (h + 0.5);
+      torchGroup.add(ring);
+    }
+    const bowl = voxBox(1.0, 0.35, 1.0, 0x888899);
+    bowl.position.y = 3.2;
+    torchGroup.add(bowl);
+    const flameLight = new THREE.PointLight(0xFF6600, 2, 10);
+    flameLight.position.y = 3.8;
+    torchGroup.add(flameLight);
+
+    // Flame particles
+    const flameParticles = [];
+    const flameColors = [0xFF4400, 0xFF6600, 0xFF8800, 0xFFAA00, 0xFFDD00];
+    for (let i = 0; i < 15; i++) {
+      const p = voxBox(0.1, 0.1, 0.1, flameColors[i % flameColors.length]);
+      const r = Math.random() * 0.25;
+      const theta = Math.random() * Math.PI * 2;
+      p.position.set(Math.cos(theta) * r, 3.5 + Math.random() * 1.2, Math.sin(theta) * r);
+      torchGroup.add(p);
+      flameParticles.push({ mesh: p, baseY: p.position.y, speed: 1 + Math.random() * 2, phase: Math.random() * Math.PI * 2 });
+    }
+    torchGroup.position.set(-8, 0, -3);
+    scene.add(torchGroup);
+
+    // Second torch on other side
+    const torch2 = torchGroup.clone(true);
+    torch2.position.set(8, 0, -3);
+    scene.add(torch2);
+
+    // === Stadium Arch ===
+    const archWidth = 14, archHeight = 9;
+    const archLeft = voxBox(0.6, archHeight, 0.6, 0x334455);
+    archLeft.position.set(-archWidth / 2, archHeight / 2, -8);
+    scene.add(archLeft);
+    const archRight = voxBox(0.6, archHeight, 0.6, 0x334455);
+    archRight.position.set(archWidth / 2, archHeight / 2, -8);
+    scene.add(archRight);
+    const archBeam = voxBox(archWidth + 1, 0.4, 0.8, 0x334455);
+    archBeam.position.set(0, archHeight, -8);
+    scene.add(archBeam);
+    // Olympic colored lights on arch
+    ringColors.forEach((c, i) => {
+      const light = new THREE.PointLight(c, 0.3, 6);
+      light.position.set(-archWidth / 2 + (i + 0.5) * (archWidth / 5), archHeight + 0.3, -7.5);
+      scene.add(light);
+      const lightBlock = voxBox(0.2, 0.2, 0.2, c);
+      lightBlock.position.copy(light.position);
+      scene.add(lightBlock);
     });
 
-    // === Cherry blossom petal particles (3D) ===
-    const isMobile = window.innerWidth < 768;
-    const petalCount = isMobile ? 40 : 80;
-    const petals = [];
-    const petalGeo = new THREE.PlaneGeometry(0.12, 0.08);
-    const petalColors = [0xFFB7C5, 0xFF91A4, 0xFFCCDD, 0xFFA0B4, 0xFF8FAA];
-
-    for (let i = 0; i < petalCount; i++) {
-      const mat = new THREE.MeshBasicMaterial({
-        color: petalColors[Math.floor(Math.random() * petalColors.length)],
-        transparent: true,
-        opacity: 0.7 + Math.random() * 0.3,
-        side: THREE.DoubleSide,
-      });
-      const petal = new THREE.Mesh(petalGeo, mat);
-      petal.position.set(
-        (Math.random() - 0.5) * 30,
-        Math.random() * 15 + 2,
-        (Math.random() - 0.5) * 20
-      );
-      petal.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI);
-      scene.add(petal);
-      petals.push({
-        mesh: petal,
-        vy: -0.3 - Math.random() * 0.5,
-        vx: (Math.random() - 0.5) * 0.5,
-        rotSpeed: (Math.random() - 0.5) * 2,
-        phase: Math.random() * Math.PI * 2,
-        windPhase: Math.random() * Math.PI * 2,
-      });
+    // === Track Lines ===
+    const trackGroup = new THREE.Group();
+    const trackLen = 30;
+    const trackSurface = voxBox(trackLen, 0.06, 7, 0x1a1522);
+    trackSurface.position.y = 0.03;
+    trackGroup.add(trackSurface);
+    for (let lane = 0; lane <= 6; lane++) {
+      const line = voxBox(trackLen, 0.02, 0.04, 0x444466);
+      line.position.set(0, 0.07, -3 + lane * 1);
+      trackGroup.add(line);
     }
+    const startLine = voxBox(0.08, 0.03, 7, 0xffffff);
+    startLine.position.set(-trackLen / 2 + 1, 0.075, 0);
+    trackGroup.add(startLine);
+    trackGroup.position.set(0, -0.3, 4);
+    scene.add(trackGroup);
+
+    // === Podium (decorative) ===
+    const podium = new THREE.Group();
+    const p1 = voxBox(2, 2.5, 1.5, 0xFFD700);
+    p1.position.set(0, 1.25, 0);
+    podium.add(p1);
+    const p2 = voxBox(2, 1.8, 1.5, 0xC0C0C0);
+    p2.position.set(-2.5, 0.9, 0);
+    podium.add(p2);
+    const p3 = voxBox(2, 1.2, 1.5, 0xCD7F32);
+    p3.position.set(2.5, 0.6, 0);
+    podium.add(p3);
+    podium.position.set(0, 0, -3);
+    scene.add(podium);
 
     // === Floating Hanja Characters ===
     const floatChars = [];
-    const sample = shuffle(ALL_HANJA).slice(0, 10);
+    const sample = shuffle(ALL_HANJA).slice(0, 12);
     sample.forEach((h, i) => {
       const tex = makeTextCanvas(h.hanja, 120, '#FFD700', 'rgba(0,0,0,0)');
-      const mat = new THREE.SpriteMaterial({ map: tex, transparent: true, opacity: 0.5 });
+      const mat = new THREE.SpriteMaterial({ map: tex, transparent: true, opacity: 0.4 });
       const sp = new THREE.Sprite(mat);
       sp.scale.set(1.0, 1.0, 1);
-      const angle = i / 10 * Math.PI * 2;
-      sp.position.set(Math.cos(angle) * 8, 3 + Math.random() * 4, Math.sin(angle) * 8);
+      const angle = i / 12 * Math.PI * 2;
+      sp.position.set(Math.cos(angle) * 9, 3 + Math.random() * 5, Math.sin(angle) * 9);
       scene.add(sp);
-      floatChars.push({ sp, angle, baseY: sp.position.y, speed: 0.15 + Math.random() * 0.2 });
+      floatChars.push({ sp, angle, baseY: sp.position.y, speed: 0.1 + Math.random() * 0.15 });
     });
 
-    // === Olympic ring shimmer particles ===
-    const ringCols = [0x0081C8, 0xFCB131, 0x000000, 0x00A651, 0xEE334E];
-    const ringParticles = [];
-    ringCols.forEach((c, i) => {
+    // === Ring Shimmer Particles ===
+    const shimmerParticles = [];
+    ringColors.forEach((c, i) => {
       for (let j = 0; j < 3; j++) {
-        const p = voxBox(0.12, 0.12, 0.12, c);
-        const baseX = -2 + i * 1;
-        const baseY = 8 + Math.random();
-        p.position.set(baseX, baseY, Math.random() * 2 - 1);
-        p.userData = { baseX, baseY, vy: 0.8 + Math.random(), phase: Math.random() * 6 };
+        const p = voxBox(0.1, 0.1, 0.1, c);
+        const bx = -2 + i;
+        const by = 9.5 + Math.random();
+        p.position.set(bx * 1.8, by, -5.5 + Math.random());
+        p.userData = { baseX: bx, baseY: by, vy: 0.5 + Math.random(), phase: Math.random() * 6 };
         scene.add(p);
-        ringParticles.push(p);
+        shimmerParticles.push(p);
       }
     });
 
-    // === Camera orbit variables ===
+    // === Camera orbit ===
     let camAngle = 0;
     const camRadius = 18;
     const camHeight = 8;
-    const camTarget = new THREE.Vector3(0, 2.5, 0);
+    const camTarget = new THREE.Vector3(0, 3, 0);
 
     // === Animation loop ===
     let t = 0;
     function animate() {
       t += 0.016;
 
-      // Camera orbit (slow)
-      camAngle += 0.001;
+      // Camera orbit
+      camAngle += 0.0008;
       cam.position.x = Math.sin(camAngle) * camRadius;
       cam.position.z = Math.cos(camAngle) * camRadius;
       cam.position.y = camHeight + Math.sin(t * 0.3) * 0.5;
       cam.lookAt(camTarget);
 
-      // Stars twinkle
       stars.rotation.y += 0.0003;
 
-      // Lantern float and flicker
-      lanterns.forEach((l, i) => {
-        l.g.position.y = l.baseY + Math.sin(t * 1.5 + i * 1.2) * 0.15;
-        l.l.intensity = 0.5 + Math.sin(t * 3 + i * 2.5) * 0.35;
+      // Flame animation
+      flameLight.intensity = 1.5 + Math.sin(t * 4) * 0.8;
+      flameParticles.forEach(p => {
+        p.mesh.position.y = p.baseY + Math.sin(t * p.speed + p.phase) * 0.3;
       });
-
-      // Pagoda glow pulse
-      glow.material.opacity = 0.6 + Math.sin(t * 2) * 0.3;
-      glow.scale.setScalar(1 + Math.sin(t * 2) * 0.2);
 
       // Floating hanja orbit
       floatChars.forEach(f => {
         f.angle += f.speed * 0.016;
-        f.sp.position.x = Math.cos(f.angle) * 8;
-        f.sp.position.z = Math.sin(f.angle) * 8;
+        f.sp.position.x = Math.cos(f.angle) * 9;
+        f.sp.position.z = Math.sin(f.angle) * 9;
         f.sp.position.y = f.baseY + Math.sin(t * 1.2 + f.angle) * 0.6;
-        f.sp.material.opacity = 0.35 + Math.sin(t + f.angle) * 0.15;
+        f.sp.material.opacity = 0.3 + Math.sin(t + f.angle) * 0.12;
       });
 
-      // Cherry blossom petals physics
-      petals.forEach(p => {
-        p.mesh.position.y += p.vy * 0.016;
-        p.mesh.position.x += (p.vx + Math.sin(t * 0.8 + p.windPhase) * 0.3) * 0.016;
-        p.mesh.rotation.x += p.rotSpeed * 0.016;
-        p.mesh.rotation.z += p.rotSpeed * 0.5 * 0.016;
-        // Reset petal when it falls below ground
-        if (p.mesh.position.y < -1) {
-          p.mesh.position.y = 12 + Math.random() * 5;
-          p.mesh.position.x = (Math.random() - 0.5) * 30;
-          p.mesh.position.z = (Math.random() - 0.5) * 20;
-        }
-      });
-
-      // Water shimmer
-      water.material.opacity = 0.55 + Math.sin(t * 1.5) * 0.15;
-      water.material.emissive.setHex(t % 2 < 1 ? 0x051525 : 0x061828);
-
-      // Ring particles float
-      ringParticles.forEach(p => {
+      // Ring shimmer
+      shimmerParticles.forEach(p => {
         p.position.y = p.userData.baseY + Math.sin(t * p.userData.vy + p.userData.phase) * 0.5;
         p.rotation.y += 0.02;
       });
 
-      // Animated fog color (subtle warm shift)
-      const fogR = 0.04 + Math.sin(t * 0.2) * 0.01;
-      const fogG = 0.04 + Math.sin(t * 0.15) * 0.005;
-      const fogB = 0.12 + Math.sin(t * 0.1) * 0.02;
-      scene.fog.color.setRGB(fogR, fogG, fogB);
-      scene.background.setRGB(fogR, fogG, fogB);
+      // Rings gentle bob
+      ringsGroup.position.y = 10 + Math.sin(t * 0.5) * 0.15;
+      ringsGroup.rotation.y = Math.sin(t * 0.08) * 0.05;
+
+      // Accent light pulse
+      pL1.intensity = 0.6 + Math.sin(t * 1.5) * 0.3;
+      pL2.intensity = 0.4 + Math.sin(t * 1.8 + 1) * 0.25;
+      pL3.intensity = 0.4 + Math.sin(t * 1.2 + 2) * 0.2;
 
       renderer.render(scene, cam);
       const splashEl = document.getElementById('screen-splash');
@@ -372,7 +280,7 @@ export function initSplash(onReady) {
     }
     animate();
 
-    // === Start BGM after first user interaction ===
+    // Start BGM after first user interaction
     const startBGMOnce = () => {
       SoundSystem.init();
       SoundSystem.startBGM('zen');

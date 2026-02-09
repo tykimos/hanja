@@ -8,22 +8,21 @@
 </head>
 <body>
 <div class="app-container">
-<div id="sidebar" class="sidebar"></div>
-<div id="main-content" class="main-content">
+<div id="main-content" class="main-content" style="max-width:100vw;">
 
 <!-- Splash -->
-<div class="screen active" id="screen-splash" style="padding:0;background:#0a0a1e;overflow:hidden;position:relative;">
+<div class="screen active" id="screen-splash" style="padding:0;background:#080820;overflow:hidden;position:relative;">
   <canvas id="splash3d" style="position:absolute;top:0;left:0;width:100%;height:100%;"></canvas>
   <div style="position:absolute;top:0;left:0;width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:10;pointer-events:none;">
     <div class="glass-panel splash-title-panel">
       <div class="splash-title-zen">한자 올림픽</div>
       <div class="splash-sub-zen">한자와 함께하는 즐거운 도전</div>
       <div class="splash-olympic-dots">
-        <span style="background:var(--blue)"></span>
-        <span style="background:var(--yellow)"></span>
+        <span style="background:#0081C8"></span>
+        <span style="background:#FCB131"></span>
         <span style="background:#333"></span>
-        <span style="background:var(--green)"></span>
-        <span style="background:var(--red)"></span>
+        <span style="background:#00A651"></span>
+        <span style="background:#EE334E"></span>
       </div>
     </div>
     <div id="splash-loading" style="margin-top:28px;display:flex;flex-direction:column;align-items:center;gap:10px;">
@@ -33,7 +32,7 @@
   </div>
 </div>
 
-<!-- Auth -->
+<!-- Auth (keeps HTML - needs text inputs) -->
 <div class="screen" id="screen-auth">
   <div class="title-lg" style="margin-bottom:8px;">한자 올림픽</div>
   <div class="subtitle" style="margin-bottom:16px;">계정을 만들고 도전을 시작하세요</div>
@@ -45,32 +44,21 @@
   <div class="auth-error" id="auth-error"></div>
 </div>
 
-<!-- Grade Select -->
-<div class="screen screen-3d" id="screen-grade-select">
+<!-- Grade Select (full 3D) -->
+<div class="screen screen-3d" id="screen-grade-select" style="padding:0;">
   <canvas id="grade3d" class="screen-3d-canvas"></canvas>
-  <div class="screen-3d-overlay scroll-area" id="grade-select-content"></div>
+  <div class="screen-3d-overlay scroll-area" id="grade-select-content" style="display:none;"></div>
 </div>
 
-<!-- Hub -->
-<div class="screen screen-3d" id="screen-hub">
+<!-- Hub (full 3D) -->
+<div class="screen screen-3d" id="screen-hub" style="padding:0;">
   <canvas id="hub3d" class="screen-3d-canvas"></canvas>
-  <div class="screen-3d-overlay">
-    <div class="hub-header">
-      <div class="hub-user">
-        <span class="hub-user-icon" id="hub-user-icon"></span>
-        <span class="hub-user-name" id="hub-user-name"></span>
-      </div>
-    </div>
-    <div class="hub-title">올림픽 마을</div>
+  <div class="screen-3d-overlay" style="display:none;">
+    <span id="hub-user-icon"></span>
+    <span id="hub-user-name"></span>
     <div id="hub-daily-card"></div>
-    <div id="hub-multiplayer" style="display:flex;gap:8px;width:100%;padding:0 var(--spacing-md);"></div>
-    <div class="game-grid" id="hub-game-grid"></div>
-    <div class="hub-nav">
-      <button class="btn-outline" id="hub-btn-leaderboard">리더보드</button>
-      <button class="btn-outline" id="hub-btn-profile">프로필</button>
-      <button class="btn-outline" id="hub-btn-study">학습</button>
-      <button class="btn-outline" id="hub-btn-logout" style="color:#e74c3c;border-color:#e74c3c;">로그아웃</button>
-    </div>
+    <div id="hub-multiplayer"></div>
+    <div id="hub-game-grid"></div>
   </div>
 </div>
 
@@ -88,40 +76,30 @@
 <!-- Room (Multiplayer) -->
 <div class="screen" id="screen-room"></div>
 
-<!-- Result -->
-<div class="screen screen-3d" id="screen-result">
+<!-- Result (full 3D) -->
+<div class="screen screen-3d" id="screen-result" style="padding:0;">
   <canvas id="result3d" class="screen-3d-canvas"></canvas>
-  <div class="screen-3d-overlay" id="result-content"></div>
+  <div class="screen-3d-overlay" id="result-content" style="display:none;"></div>
 </div>
 
-<!-- Leaderboard -->
-<div class="screen screen-3d" id="screen-leaderboard">
+<!-- Leaderboard (full 3D) -->
+<div class="screen screen-3d" id="screen-leaderboard" style="padding:0;">
   <canvas id="lb3d" class="screen-3d-canvas"></canvas>
-  <div class="screen-3d-overlay">
-    <div class="game-header" style="width:100%">
-      <button class="game-back" id="lb-back">&#8592;</button>
-      <span class="game-title">리더보드</span>
-      <span style="width:44px"></span>
-    </div>
-    <div class="lb-tabs" id="lb-tabs"></div>
-    <div class="lb-list scroll-area" id="lb-list"></div>
+  <div class="screen-3d-overlay" style="display:none;">
+    <div id="lb-tabs"></div>
+    <div id="lb-list"></div>
   </div>
 </div>
 
-<!-- Profile -->
-<div class="screen screen-3d" id="screen-profile">
+<!-- Profile (full 3D) -->
+<div class="screen screen-3d" id="screen-profile" style="padding:0;">
   <canvas id="profile3d" class="screen-3d-canvas"></canvas>
-  <div class="screen-3d-overlay">
-    <div class="game-header" style="width:100%">
-      <button class="game-back" id="profile-back">&#8592;</button>
-      <span class="game-title">프로필</span>
-      <span style="width:44px"></span>
-    </div>
-    <div class="scroll-area" id="profile-content"></div>
+  <div class="screen-3d-overlay" style="display:none;">
+    <div id="profile-content"></div>
   </div>
 </div>
 
-<!-- Study -->
+<!-- Study (keeps HTML - text-heavy) -->
 <div class="screen" id="screen-study">
   <div class="game-header" style="width:100%">
     <button class="game-back" id="study-back">&#8592;</button>
@@ -131,7 +109,7 @@
   <div class="scroll-area" id="study-content"></div>
 </div>
 
-<!-- Statistics -->
+<!-- Statistics (keeps HTML - data tables) -->
 <div class="screen" id="screen-statistics">
   <div class="game-header" style="width:100%">
     <button class="game-back" id="stats-back">&#8592;</button>
