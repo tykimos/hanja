@@ -54,14 +54,35 @@ const Store = {
     this._user = data.user;
     await this._loadProfile();
 
-    // Ensure profile has grade set (for existing users)
-    if (this._profile && !this._profile.grade) {
+    // Ensure profile exists (for existing auth users without profiles)
+    if (!this._profile) {
+      console.log('Creating missing profile for user:', this._user.id);
+      const { error: createError } = await supabase.from('profiles').insert({
+        id: this._user.id,
+        username: this._user.email?.split('@')[0] || `user_${Date.now()}`,
+        icon: '🇰🇷',
+        grade: '8급'
+      });
+      if (createError) {
+        console.error('Failed to create profile:', createError);
+        // If username conflict, try with timestamp
+        await supabase.from('profiles').insert({
+          id: this._user.id,
+          username: `${this._user.email?.split('@')[0]}_${Date.now()}`,
+          icon: '🇰🇷',
+          grade: '8급'
+        });
+      }
+      await this._loadProfile();
+    } else if (!this._profile.grade) {
+      // Profile exists but no grade set
       await supabase.from('profiles')
         .update({ grade: '8급' })
         .eq('id', this._user.id);
       await this._loadProfile();
     }
 
+    console.log('Login complete, profile:', this._profile);
     return { data };
   },
 
@@ -271,25 +292,31 @@ const Store = {
   async setGrade(grade) {
     if (!this._user) throw new Error('No user logged in');
 
-    // Use upsert for simpler, more reliable logic
-    const { error } = await supabase.from('profiles')
-      .upsert({
-        id: this._user.id,
-        username: this._profile?.username || this._user.email?.split('@')[0] || 'User',
-        icon: this._profile?.icon || '🇰🇷',
-        grade: grade
-      }, {
-        onConflict: 'id'
-      });
+    console.log('setGrade called:', { userId: this._user.id, grade, hasProfile: !!this._profile });
+
+    // Simply update the grade field (profile should already exist from login/signup)
+    const { error, data, count } = await supabase.from('profiles')
+      .update({ grade })
+      .eq('id', this._user.id)
+      .select();
+
+    console.log('setGrade result:', { error, data, count });
 
     if (error) {
       console.error('setGrade error:', error);
       throw error;
     }
 
+    // If no rows were updated, profile doesn't exist - this shouldn't happen
+    if (!data || data.length === 0) {
+      console.error('setGrade: Profile not found for user', this._user.id);
+      throw new Error('Profile not found. Please log out and log in again.');
+    }
+
     // Reload profile
     await this._loadProfile();
 
+    console.log('setGrade complete, new profile:', this._profile);
     return grade;
   },
 };
