@@ -1,9 +1,18 @@
 import Store from '../systems/store.js';
 import { Router } from '../systems/router.js';
 import { $, medalEmoji } from '../utils.js';
+import { renderSidebar, updateSidebarData } from '../components/sidebar.js';
 
 export function showLeaderboard(showHubFn) {
   const signal = Router.navigate('screen-leaderboard');
+
+  // Render sidebar
+  const sidebar = document.getElementById('sidebar');
+  if (sidebar) {
+    sidebar.innerHTML = renderSidebar();
+    updateSidebarData();
+  }
+
   const tabs = ['종합', '양궁', '수영', '역도', '카드 뒤집기', '마라톤', '반의어', '사자성어', '동음이의'];
   const tabIds = ['total', 'archery', 'swimming', 'weightlifting', 'gymnastics', 'marathon', 'antonym', 'idiom', 'homonym'];
   let activeTab = 'total';

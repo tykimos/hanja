@@ -2,12 +2,21 @@ import { ALL_HANJA, GAME_LIST } from '../data/hanja.js';
 import Store from '../systems/store.js';
 import { Router } from '../systems/router.js';
 import { $, medalEmoji } from '../utils.js';
+import { renderSidebar, updateSidebarData } from '../components/sidebar.js';
 
 export function showProfile(showHubFn, showAuthFn, showGradeSelectFn) {
   const signal = Router.navigate('screen-profile');
   $('profile-back').addEventListener('click', () => showHubFn(), { signal });
   const profile = Store.getProfile();
   if (!profile) { showAuthFn(); return; }
+
+  // Render sidebar
+  const sidebar = document.getElementById('sidebar');
+  if (sidebar) {
+    sidebar.innerHTML = renderSidebar();
+    updateSidebarData();
+  }
+
   const content = $('profile-content');
 
   // Load data async

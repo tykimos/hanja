@@ -5,6 +5,7 @@ import { Router } from '../systems/router.js';
 import { $, medalEmoji } from '../utils.js';
 import { voxBox } from '../engine/helpers.js';
 import { SoundSystem } from '../systems/sound.js';
+import { renderSidebar, updateSidebarData } from '../components/sidebar.js';
 
 let hubRenderer = null;
 let hubAnimId = null;
@@ -130,8 +131,18 @@ export function showHub(deps) {
   // Initialize 3D background
   setTimeout(() => initHub3DBackground(), 50);
 
-  $('hub-user-icon').textContent = profile.icon;
-  $('hub-user-name').textContent = profile.username;
+  // Render sidebar
+  const sidebar = document.getElementById('sidebar');
+  if (sidebar) {
+    sidebar.innerHTML = renderSidebar();
+    updateSidebarData();
+  }
+
+  // Update user info in header (if exists)
+  const userIcon = $('hub-user-icon');
+  const userName = $('hub-user-name');
+  if (userIcon) userIcon.textContent = profile.icon;
+  if (userName) userName.textContent = profile.username;
 
   // Stop BGM when entering a game
   const startGameWithBGMStop = (gameId) => {
@@ -153,10 +164,13 @@ export function showHub(deps) {
     Store.getDailyChallenge().then(dc => {
       const doneToday = !!dc;
       Store.getDailyStreak().then(streak => {
-        dailyDiv.innerHTML = `<div class="daily-card glass-panel" id="hub-daily-btn">
-          <div class="daily-card-title">일일 도전 ${doneToday ? '(완료)' : ''}</div>
-          <div class="daily-card-info">${doneToday ? `오늘 점수: ${dc.score}/10 ${dc.medal ? medalEmoji(dc.medal) : ''}` : '오늘의 한자 도전에 참여하세요!'}</div>
-          ${streak ? `<div class="daily-streak">연속 ${streak}일</div>` : ''}
+        const statusText = doneToday ? 'Completed' : 'Available';
+        const scoreText = doneToday ? `Today: ${dc.score}/10 ${dc.medal ? medalEmoji(dc.medal) : ''}` : 'Complete today\'s Hanja challenge';
+
+        dailyDiv.innerHTML = `<div class="daily-card" id="hub-daily-btn">
+          <div class="daily-card-title">Daily Challenge - ${statusText}</div>
+          <div class="daily-card-info">${scoreText}</div>
+          ${streak ? `<div class="daily-streak">${streak} Day Streak</div>` : ''}
         </div>`;
         $('hub-daily-btn').addEventListener('click', () => startDailyWithBGMStop(), { signal });
       });
@@ -165,16 +179,32 @@ export function showHub(deps) {
     // Game grid
     const grid = $('hub-game-grid');
     grid.innerHTML = '';
+
+    // Game name mapping (emoji removed, text-only)
+    const gameNames = {
+      'archery': 'Archery',
+      'swimming': 'Swimming',
+      'weightlifting': 'Weightlifting',
+      'gymnastics': 'Memory Card',
+      'marathon': 'Marathon',
+      'antonym': 'Antonyms',
+      'idiom': 'Idioms',
+      'homonym': 'Homophones'
+    };
+
     GAME_LIST.forEach((g, idx) => {
       const best = bestScores[g.id];
       const div = document.createElement('div');
-      div.className = 'game-card glass-panel anim-fadeIn';
+      div.className = 'game-card anim-fadeIn';
       div.style.animationDelay = `${idx * 0.06}s`;
+
+      const displayName = gameNames[g.id] || g.name;
+      const scoreText = best ? `Best: ${best.score}${g.id === 'gymnastics' ? ' pairs' : ' pts'}` : 'Not Played';
+      const medalDisplay = best && best.medal ? medalEmoji(best.medal) : '';
+
       div.innerHTML = `
-        <div class="game-card-icon hub-icon-float">${g.icon}</div>
-        <div class="game-card-name">${g.name}</div>
-        <div style="font-size:.65rem;color:${g.multi ? 'var(--blue)' : 'rgba(255,255,255,.4)'};margin:2px 0;">${g.multi ? '혼자 & 함께' : '혼자'}</div>
-        <div class="game-card-best">${best ? `최고: ${best.score}${g.id === 'gymnastics' ? '회' : '점'} ${best.medal ? medalEmoji(best.medal) : ''}` : '도전하기'}</div>
+        <div class="game-card-name">${displayName}</div>
+        <div class="game-card-best">${scoreText} ${medalDisplay}</div>
       `;
       div.addEventListener('click', () => startGameWithBGMStop(g.id), { signal });
       grid.appendChild(div);
@@ -185,8 +215,8 @@ export function showHub(deps) {
   const mpDiv = $('hub-multiplayer');
   if (mpDiv) {
     mpDiv.innerHTML = `
-      <button class="btn-gold" id="hub-btn-create-room" style="flex:1;">방 만들기</button>
-      <button class="btn-primary" id="hub-btn-join-room" style="flex:1;">방 참가</button>
+      <button class="btn-gold" id="hub-btn-create-room" style="flex:1;">Create Room</button>
+      <button class="btn-primary" id="hub-btn-join-room" style="flex:1;">Join Room</button>
     `;
     $('hub-btn-create-room').addEventListener('click', () => { SoundSystem.stopBGM(); cleanupHub3D(); showRoom(); }, { signal });
     $('hub-btn-join-room').addEventListener('click', () => { SoundSystem.stopBGM(); cleanupHub3D(); showRoomJoin(); }, { signal });
