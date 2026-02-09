@@ -305,10 +305,19 @@
       "status": "failed",
       "completed_at": "2026-02-09T04:00:14.274Z",
       "duration_ms": 359197
+    },
+    {
+      "agent_id": "a4467b5",
+      "agent_type": "oh-my-claudecode:designer-high",
+      "started_at": "2026-02-09T04:02:51.890Z",
+      "parent_mode": "none",
+      "status": "failed",
+      "completed_at": "2026-02-09T05:56:03.874Z",
+      "duration_ms": 6791984
     }
   ],
-  "total_spawned": 34,
+  "total_spawned": 35,
   "total_completed": 0,
-  "total_failed": 34,
-  "last_updated": "2026-02-09T04:00:14.275Z"
+  "total_failed": 35,
+  "last_updated": "2026-02-09T05:56:03.874Z"
 }

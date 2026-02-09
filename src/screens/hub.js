@@ -3,123 +3,184 @@ import { GAME_LIST } from '../data/hanja.js';
 import Store from '../systems/store.js';
 import { Router } from '../systems/router.js';
 import { $, medalEmoji } from '../utils.js';
-import { voxBox } from '../engine/helpers.js';
+import { voxBox, makeTextCanvas } from '../engine/helpers.js';
 import { SoundSystem } from '../systems/sound.js';
 import { renderSidebar, updateSidebarData } from '../components/sidebar.js';
+import {
+  createScene3D, createCamera3D, createRenderer3D,
+  createPetals, updatePetals,
+  createLanterns, updateLanterns,
+  createRingParticles, updateRingParticles,
+  createCherryTree, createToriiGate,
+  createTextSprite, createVoxelPanel,
+  PALETTE, SceneAnimator,
+} from '../systems/ui3d.js';
 
-let hubRenderer = null;
-let hubAnimId = null;
+let hubAnimator = null;
+
+// Game display config
+const GAME_CONFIG = {
+  archery:       { color: 0xEE334E, icon: '\u{1F3F9}', nameEn: 'Archery' },
+  swimming:      { color: 0x0081C8, icon: '\u{1F3CA}', nameEn: 'Swimming' },
+  weightlifting: { color: 0xFCB131, icon: '\u{1F3CB}\u{FE0F}', nameEn: 'Weightlifting' },
+  gymnastics:    { color: 0x6C63FF, icon: '\u{1F0CF}', nameEn: 'Memory Card' },
+  marathon:      { color: 0x00A651, icon: '\u{1F3C3}', nameEn: 'Marathon' },
+  antonym:       { color: 0xFF6B6B, icon: '\u{1F504}', nameEn: 'Antonyms' },
+  idiom:         { color: 0xFFD700, icon: '\u{1F4DC}', nameEn: 'Idioms' },
+  homonym:       { color: 0x00BCD4, icon: '\u{1F524}', nameEn: 'Homophones' },
+};
+
+function cleanupHub3D() {
+  if (hubAnimator) {
+    hubAnimator.dispose();
+    hubAnimator = null;
+  }
+}
 
 function initHub3DBackground() {
   const canvas = document.getElementById('hub3d');
-  if (!canvas || hubRenderer) return;
+  if (!canvas) return;
+  cleanupHub3D();
 
-  const w = window.innerWidth, h = window.innerHeight;
-  hubRenderer = new THREE.WebGLRenderer({ canvas, antialias: false, alpha: true });
-  hubRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
-  hubRenderer.setSize(w, h);
-  hubRenderer.setClearColor(0x000000, 0);
-
-  const scene = new THREE.Scene();
-  scene.fog = new THREE.FogExp2(0x0a0a2e, 0.03);
-  const cam = new THREE.PerspectiveCamera(50, w / h, 0.1, 100);
-  cam.position.set(0, 6, 15);
-  cam.lookAt(0, 2, 0);
-
-  scene.add(new THREE.AmbientLight(0x334466, 0.3));
-  const dl = new THREE.DirectionalLight(0x8888ff, 0.4);
-  dl.position.set(3, 8, 5);
-  scene.add(dl);
-  const pl = new THREE.PointLight(0xFF8844, 0.5, 20);
-  pl.position.set(-3, 4, 3);
-  scene.add(pl);
-
-  // Mountain silhouette voxels
-  const mountainColors = [0x1a1a4e, 0x151540, 0x202060];
-  [[-5, 0, -8, 3, 5, 3], [0, 0, -10, 5, 7, 4], [6, 0, -7, 3.5, 4, 3], [-8, 0, -6, 2, 3, 2]].forEach(([mx, my, mz, mw, mh, md], i) => {
-    const m = voxBox(mw, mh, md, mountainColors[i % mountainColors.length]);
-    m.position.set(mx, my + mh / 2, mz);
-    scene.add(m);
+  // Scene
+  const { scene, stars } = createScene3D({
+    fogDensity: 0.012,
+    withGround: true,
+    withStars: true,
+    withMountains: true,
+    withPillars: true,
   });
 
-  // Small cherry blossom particles
+  // Camera
+  const camera = createCamera3D({ fov: 50 });
+  camera.position.set(0, 6, 16);
+  camera.lookAt(0, 2, 0);
+
+  // Renderer
+  const renderer = createRenderer3D(canvas, { alpha: true });
+  renderer.setClearColor(0x000000, 0);
+
+  // Cherry blossom trees
+  [[-9, -5], [9, -4], [-8, 6], [10, 5]].forEach(([tx, tz]) => {
+    scene.add(createCherryTree(tx, tz, 0.8));
+  });
+
+  // Torii gate in background
+  scene.add(createToriiGate(0, -5, 0.9));
+
+  // Lanterns
+  const lanterns = createLanterns(scene, [
+    [-4, 4, 3], [4, 4, 3], [-3, 6, -3], [3, 6, -3],
+  ]);
+
+  // Petals
+  const petals = createPetals(scene, 40);
+
+  // Ring particles
+  const ringParticles = createRingParticles(scene, [0, 10, -6]);
+
+  // 8 Game pedestals with voxel icons
+  const gamePedestals = [];
   const isMobile = window.innerWidth < 768;
-  const petalCount = isMobile ? 15 : 30;
-  const petals = [];
-  const petalGeo = new THREE.PlaneGeometry(0.08, 0.05);
-  const petalColors = [0xFFB7C5, 0xFF91A4, 0xFFCCDD];
 
-  for (let i = 0; i < petalCount; i++) {
-    const mat = new THREE.MeshBasicMaterial({
-      color: petalColors[Math.floor(Math.random() * petalColors.length)],
-      transparent: true,
-      opacity: 0.4 + Math.random() * 0.3,
-      side: THREE.DoubleSide,
+  // Arrange in 2 rows of 4 (arc layout)
+  const positions = isMobile ? [
+    [-2.5, 0, 0], [0, 0, 0], [2.5, 0, 0], [5, 0, 0],
+    [-2.5, 0, 3], [0, 0, 3], [2.5, 0, 3], [5, 0, 3],
+  ] : [
+    [-6, 0, -1], [-3, 0, -2], [0, 0, -2.5], [3, 0, -2],
+    [6, 0, -1], [-4.5, 0, 1.5], [-1.5, 0, 1], [1.5, 0, 1.5],
+  ];
+
+  GAME_LIST.forEach((g, idx) => {
+    const cfg = GAME_CONFIG[g.id] || { color: 0x888888, icon: '?', nameEn: g.name };
+    const pos = positions[idx] || [idx * 3 - 9, 0, 0];
+    const group = new THREE.Group();
+
+    // Pedestal base
+    const base = voxBox(1.6, 0.25, 1.6, 0x333344);
+    base.position.y = 0.125;
+    group.add(base);
+
+    // Pedestal top plate
+    const plate = voxBox(1.4, 0.08, 1.4, 0x444466);
+    plate.position.y = 0.29;
+    group.add(plate);
+
+    // Game icon block (colored)
+    const iconBlock = voxBox(1.0, 1.0, 0.4, cfg.color);
+    iconBlock.position.set(0, 1.1, 0);
+    group.add(iconBlock);
+
+    // Icon face - text sprite
+    const iconSprite = createTextSprite(cfg.icon, {
+      fontSize: 72, canvasW: 128, canvasH: 128, scale: 0.8,
     });
-    const petal = new THREE.Mesh(petalGeo, mat);
-    petal.position.set(
-      (Math.random() - 0.5) * 20,
-      Math.random() * 12 + 2,
-      (Math.random() - 0.5) * 15
-    );
-    petal.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI);
-    scene.add(petal);
-    petals.push({
-      mesh: petal,
-      vy: -0.2 - Math.random() * 0.3,
-      vx: (Math.random() - 0.5) * 0.3,
-      rotSpeed: (Math.random() - 0.5) * 1.5,
-      windPhase: Math.random() * Math.PI * 2,
+    iconSprite.position.set(0, 1.1, 0.25);
+    group.add(iconSprite);
+
+    // Glow point light
+    const glow = new THREE.PointLight(cfg.color, 0, 4);
+    glow.position.set(0, 1.5, 0);
+    group.add(glow);
+
+    group.position.set(pos[0], pos[1], pos[2]);
+    scene.add(group);
+
+    gamePedestals.push({
+      group, iconBlock, glow,
+      baseY: 1.1,
+      bobPhase: Math.random() * Math.PI * 2,
+      color: cfg.color,
     });
-  }
+  });
 
-  // Stars
-  const sGeo = new THREE.BufferGeometry();
-  const sPos = [];
-  for (let i = 0; i < 200; i++) sPos.push((Math.random() - .5) * 60, Math.random() * 30 + 5, (Math.random() - .5) * 60 - 10);
-  sGeo.setAttribute('position', new THREE.Float32BufferAttribute(sPos, 3));
-  const stars = new THREE.Points(sGeo, new THREE.PointsMaterial({ color: 0xffffff, size: 0.08, transparent: true, opacity: 0.6 }));
-  scene.add(stars);
+  // Central title voxel structure
+  const titleGroup = new THREE.Group();
+  // Back panel
+  const titleBg = createVoxelPanel(8, 1.5, 0.2, 0x111128, { opacity: 0.8 });
+  titleBg.position.set(0, 7, -7);
+  titleGroup.add(titleBg);
+  // Title text sprite
+  const titleText = createTextSprite('OLYMPIC VILLAGE', {
+    fontSize: 48, color: '#FFD700', canvasW: 512, canvasH: 96, scale: 3.5,
+    fontWeight: '900',
+  });
+  titleText.position.set(0, 7, -6.7);
+  titleGroup.add(titleText);
+  scene.add(titleGroup);
 
-  let t = 0;
-  function animate() {
-    t += 0.016;
-    stars.rotation.y += 0.0002;
+  // Animation
+  hubAnimator = new SceneAnimator(renderer, scene, camera, 'screen-hub');
 
-    petals.forEach(p => {
-      p.mesh.position.y += p.vy * 0.016;
-      p.mesh.position.x += (p.vx + Math.sin(t * 0.6 + p.windPhase) * 0.2) * 0.016;
-      p.mesh.rotation.x += p.rotSpeed * 0.016;
-      if (p.mesh.position.y < -1) {
-        p.mesh.position.y = 10 + Math.random() * 4;
-        p.mesh.position.x = (Math.random() - 0.5) * 20;
-      }
+  hubAnimator.addUpdate((t) => {
+    // Stars twinkle
+    if (stars) stars.rotation.y += 0.0002;
+
+    // Camera gentle sway
+    camera.position.x = Math.sin(t * 0.05) * 1.5;
+    camera.position.y = 6 + Math.sin(t * 0.08) * 0.3;
+    camera.lookAt(0, 2, 0);
+
+    // Petals
+    updatePetals(petals, t);
+
+    // Lanterns
+    updateLanterns(lanterns, t);
+
+    // Ring particles
+    updateRingParticles(ringParticles, t);
+
+    // Game pedestals bob and glow
+    gamePedestals.forEach((p, i) => {
+      const bob = Math.sin(t * 1.2 + p.bobPhase) * 0.15;
+      p.iconBlock.position.y = p.baseY + bob;
+      p.iconBlock.rotation.y = Math.sin(t * 0.4 + p.bobPhase) * 0.15;
+      p.glow.intensity = 0.3 + Math.sin(t * 2 + i) * 0.2;
     });
+  });
 
-    cam.position.x = Math.sin(t * 0.05) * 2;
-    cam.position.y = 6 + Math.sin(t * 0.1) * 0.3;
-    cam.lookAt(0, 2, 0);
-
-    hubRenderer.render(scene, cam);
-    const hubEl = document.getElementById('screen-hub');
-    if (hubEl && hubEl.classList.contains('active')) {
-      hubAnimId = requestAnimationFrame(animate);
-    } else {
-      cleanupHub3D();
-    }
-  }
-  animate();
-}
-
-function cleanupHub3D() {
-  if (hubAnimId) {
-    cancelAnimationFrame(hubAnimId);
-    hubAnimId = null;
-  }
-  if (hubRenderer) {
-    hubRenderer.dispose();
-    hubRenderer = null;
-  }
+  hubAnimator.start();
 }
 
 export function showHub(deps) {
@@ -138,7 +199,7 @@ export function showHub(deps) {
     updateSidebarData();
   }
 
-  // Update user info in header (if exists)
+  // Update user info in header
   const userIcon = $('hub-user-icon');
   const userName = $('hub-user-name');
   if (userIcon) userIcon.textContent = profile.icon;
@@ -180,25 +241,14 @@ export function showHub(deps) {
     const grid = $('hub-game-grid');
     grid.innerHTML = '';
 
-    // Game name mapping (emoji removed, text-only)
-    const gameNames = {
-      'archery': 'Archery',
-      'swimming': 'Swimming',
-      'weightlifting': 'Weightlifting',
-      'gymnastics': 'Memory Card',
-      'marathon': 'Marathon',
-      'antonym': 'Antonyms',
-      'idiom': 'Idioms',
-      'homonym': 'Homophones'
-    };
-
     GAME_LIST.forEach((g, idx) => {
       const best = bestScores[g.id];
+      const cfg = GAME_CONFIG[g.id] || { nameEn: g.name };
       const div = document.createElement('div');
       div.className = 'game-card anim-fadeIn';
       div.style.animationDelay = `${idx * 0.06}s`;
 
-      const displayName = gameNames[g.id] || g.name;
+      const displayName = cfg.nameEn;
       const scoreText = best ? `Best: ${best.score}${g.id === 'gymnastics' ? ' pairs' : ' pts'}` : 'Not Played';
       const medalDisplay = best && best.medal ? medalEmoji(best.medal) : '';
 

@@ -46,28 +46,31 @@
 </div>
 
 <!-- Grade Select -->
-<div class="screen" id="screen-grade-select" style="background:linear-gradient(135deg,#0a0a2e 0%,#1a1050 50%,#0a0a2e 100%);">
-  <div class="scroll-area" id="grade-select-content"></div>
+<div class="screen screen-3d" id="screen-grade-select">
+  <canvas id="grade3d" class="screen-3d-canvas"></canvas>
+  <div class="screen-3d-overlay scroll-area" id="grade-select-content"></div>
 </div>
 
 <!-- Hub -->
-<div class="screen" id="screen-hub">
-  <canvas id="hub3d" style="position:absolute;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none;"></canvas>
-  <div class="hub-header" style="position:relative;z-index:1;">
-    <div class="hub-user">
-      <span class="hub-user-icon" id="hub-user-icon"></span>
-      <span class="hub-user-name" id="hub-user-name"></span>
+<div class="screen screen-3d" id="screen-hub">
+  <canvas id="hub3d" class="screen-3d-canvas"></canvas>
+  <div class="screen-3d-overlay">
+    <div class="hub-header">
+      <div class="hub-user">
+        <span class="hub-user-icon" id="hub-user-icon"></span>
+        <span class="hub-user-name" id="hub-user-name"></span>
+      </div>
     </div>
-  </div>
-  <div class="hub-title">올림픽 마을</div>
-  <div id="hub-daily-card"></div>
-  <div id="hub-multiplayer" style="display:flex;gap:8px;width:100%;padding:0 var(--spacing-md);"></div>
-  <div class="game-grid" id="hub-game-grid"></div>
-  <div class="hub-nav">
-    <button class="btn-outline" id="hub-btn-leaderboard">리더보드</button>
-    <button class="btn-outline" id="hub-btn-profile">프로필</button>
-    <button class="btn-outline" id="hub-btn-study">학습</button>
-    <button class="btn-outline" id="hub-btn-logout" style="color:#e74c3c;border-color:#e74c3c;">로그아웃</button>
+    <div class="hub-title">올림픽 마을</div>
+    <div id="hub-daily-card"></div>
+    <div id="hub-multiplayer" style="display:flex;gap:8px;width:100%;padding:0 var(--spacing-md);"></div>
+    <div class="game-grid" id="hub-game-grid"></div>
+    <div class="hub-nav">
+      <button class="btn-outline" id="hub-btn-leaderboard">리더보드</button>
+      <button class="btn-outline" id="hub-btn-profile">프로필</button>
+      <button class="btn-outline" id="hub-btn-study">학습</button>
+      <button class="btn-outline" id="hub-btn-logout" style="color:#e74c3c;border-color:#e74c3c;">로그아웃</button>
+    </div>
   </div>
 </div>
 
@@ -86,29 +89,36 @@
 <div class="screen" id="screen-room"></div>
 
 <!-- Result -->
-<div class="screen" id="screen-result">
-  <div id="result-content"></div>
+<div class="screen screen-3d" id="screen-result">
+  <canvas id="result3d" class="screen-3d-canvas"></canvas>
+  <div class="screen-3d-overlay" id="result-content"></div>
 </div>
 
 <!-- Leaderboard -->
-<div class="screen" id="screen-leaderboard">
-  <div class="game-header" style="width:100%">
-    <button class="game-back" id="lb-back">&#8592;</button>
-    <span class="game-title">리더보드</span>
-    <span style="width:44px"></span>
+<div class="screen screen-3d" id="screen-leaderboard">
+  <canvas id="lb3d" class="screen-3d-canvas"></canvas>
+  <div class="screen-3d-overlay">
+    <div class="game-header" style="width:100%">
+      <button class="game-back" id="lb-back">&#8592;</button>
+      <span class="game-title">리더보드</span>
+      <span style="width:44px"></span>
+    </div>
+    <div class="lb-tabs" id="lb-tabs"></div>
+    <div class="lb-list scroll-area" id="lb-list"></div>
   </div>
-  <div class="lb-tabs" id="lb-tabs"></div>
-  <div class="lb-list scroll-area" id="lb-list"></div>
 </div>
 
 <!-- Profile -->
-<div class="screen" id="screen-profile">
-  <div class="game-header" style="width:100%">
-    <button class="game-back" id="profile-back">&#8592;</button>
-    <span class="game-title">프로필</span>
-    <span style="width:44px"></span>
+<div class="screen screen-3d" id="screen-profile">
+  <canvas id="profile3d" class="screen-3d-canvas"></canvas>
+  <div class="screen-3d-overlay">
+    <div class="game-header" style="width:100%">
+      <button class="game-back" id="profile-back">&#8592;</button>
+      <span class="game-title">프로필</span>
+      <span style="width:44px"></span>
+    </div>
+    <div class="scroll-area" id="profile-content"></div>
   </div>
-  <div class="scroll-area" id="profile-content"></div>
 </div>
 
 <!-- Study -->
@@ -125,7 +135,7 @@
 <div class="screen" id="screen-statistics">
   <div class="game-header" style="width:100%">
     <button class="game-back" id="stats-back">&#8592;</button>
-    <span class="game-title">📊 내 통계</span>
+    <span class="game-title">내 통계</span>
     <span style="width:44px"></span>
   </div>
   <div class="scroll-area" id="statistics-content"></div>
